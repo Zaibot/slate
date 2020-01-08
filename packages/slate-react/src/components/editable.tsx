@@ -13,7 +13,7 @@ import scrollIntoView from 'scroll-into-view-if-needed'
 
 import Children from './children'
 import Hotkeys from '../utils/hotkeys'
-import { IS_FIREFOX, IS_SAFARI } from '../utils/environment'
+import { IS_FIREFOX, IS_SAFARI, IS_EDGE_12_18 } from '../utils/environment'
 import { ReactEditor } from '..'
 import { ReadOnlyContext } from '../hooks/use-read-only'
 import { useSlate } from '../hooks/use-slate'
@@ -200,7 +200,7 @@ export const Editable = (props: EditableProps) => {
     setTimeout(() => {
       // COMPAT: In Firefox, it's not enough to create a range, you also need
       // to focus the contenteditable element too. (2016/11/16)
-      if (newDomRange && IS_FIREFOX) {
+      if (newDomRange && (IS_FIREFOX || IS_EDGE_12_18)) {
         el.focus()
       }
 
@@ -423,9 +423,15 @@ export const Editable = (props: EditableProps) => {
         {...attributes}
         // COMPAT: Firefox doesn't support the `beforeinput` event, so we'd
         // have to use hacks to make these replacement-based features work.
-        spellCheck={IS_FIREFOX ? undefined : attributes.spellCheck}
-        autoCorrect={IS_FIREFOX ? undefined : attributes.autoCorrect}
-        autoCapitalize={IS_FIREFOX ? undefined : attributes.autoCapitalize}
+        spellCheck={
+          IS_FIREFOX || IS_EDGE_12_18 ? undefined : attributes.spellCheck
+        }
+        autoCorrect={
+          IS_FIREFOX || IS_EDGE_12_18 ? undefined : attributes.autoCorrect
+        }
+        autoCapitalize={
+          IS_FIREFOX || IS_EDGE_12_18 ? undefined : attributes.autoCapitalize
+        }
         data-slate-editor
         data-slate-node="value"
         contentEditable={readOnly ? undefined : true}
@@ -446,7 +452,7 @@ export const Editable = (props: EditableProps) => {
             // COMPAT: Firefox doesn't support the `beforeinput` event, so we
             // fall back to React's leaky polyfill instead just for it. It
             // only works for the `insertText` input type.
-            if (IS_FIREFOX && !readOnly) {
+            if ((IS_FIREFOX || IS_EDGE_12_18) && !readOnly) {
               event.preventDefault()
               const text = (event as any).data as string
               Editor.insertText(editor, text)
@@ -543,7 +549,7 @@ export const Editable = (props: EditableProps) => {
               // aren't correct and never fire the "insertFromComposition"
               // type that we need. So instead, insert whenever a composition
               // ends since it will already have been committed to the DOM.
-              if (!IS_SAFARI && !IS_FIREFOX && event.data) {
+              if (!IS_SAFARI && !IS_FIREFOX && !IS_EDGE_12_18 && event.data) {
                 Editor.insertText(editor, event.data)
               }
             }
@@ -644,6 +650,7 @@ export const Editable = (props: EditableProps) => {
               // https://bugs.chromium.org/p/chromium/issues/detail?id=1028668
               if (
                 IS_FIREFOX ||
+                IS_EDGE_12_18 ||
                 (!IS_SAFARI && event.dataTransfer.files.length > 0)
               ) {
                 event.preventDefault()
@@ -670,7 +677,7 @@ export const Editable = (props: EditableProps) => {
               // COMPAT: If the editor has nested editable elements, the focus
               // can go to them. In Firefox, this must be prevented because it
               // results in issues with keyboard navigation. (2017/03/30)
-              if (IS_FIREFOX && event.target !== el) {
+              if ((IS_FIREFOX || IS_EDGE_12_18) && event.target !== el) {
                 el.focus()
                 return
               }
@@ -889,7 +896,7 @@ export const Editable = (props: EditableProps) => {
             // COMPAT: Firefox doesn't support the `beforeinput` event, so we
             // fall back to React's `onPaste` here instead.
             if (
-              IS_FIREFOX &&
+              (IS_FIREFOX || IS_EDGE_12_18) &&
               !readOnly &&
               hasEditableTarget(editor, event.target) &&
               !isEventHandled(event, attributes.onPaste)

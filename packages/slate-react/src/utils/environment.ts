@@ -11,6 +11,9 @@ export const IS_FIREFOX =
   typeof navigator !== 'undefined' &&
   /^(?!.*Seamonkey)(?=.*Firefox).*/i.test(navigator.userAgent)
 
+export const IS_EDGE_12_18 =
+  typeof navigator !== 'undefined' && /Edge\/1[2-8]/i.test(navigator.userAgent)
+
 export const IS_SAFARI =
   typeof navigator !== 'undefined' &&
   /Version\/[\d\.]+.*Safari/.test(navigator.userAgent)
